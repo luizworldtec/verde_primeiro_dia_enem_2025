@@ -1,0 +1,347 @@
+ 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulado ENEM 2025 - Prova Verde</title>
+<style>
+:root{
+  --accent:#0ea5a4;
+  --accent-2:#06b6d4;
+  --button-text:#04201f;
+  --danger:#ef4444;
+  --light-bg:#f8fafc;
+  --light-card:#ffffff;
+  --light-text:#0f172a;
+  --light-muted:#475569;
+  --dark-bg:#1e1e1e;
+  --dark-card:#2a2a2a;
+  --dark-text:#e6eef6;
+  --dark-muted:#94a3b8;
+  --transition-time:0.3s;
+}
+body[data-theme="light"]{
+  --bg:var(--light-bg);
+  --card:var(--light-card);
+  --text:var(--light-text);
+  --muted:var(--light-muted);
+  --button-text:#04201f;
+  --border-btn:rgba(0,0,0,0.06);
+}
+body[data-theme="dark"]{
+  --bg:var(--dark-bg);
+  --card:var(--dark-card);
+  --text:var(--dark-text);
+  --muted:var(--dark-muted);
+  --button-text:#f8fafc;
+  --border-btn:rgba(255,255,255,0.2);
+}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+  margin:0;padding:12px;
+  transition: background var(--transition-time), color var(--transition-time);
+}
+.app{max-width:900px;margin:0 auto;border-radius:12px;overflow:hidden;background:var(--card);box-shadow:0 12px 40px rgba(2,6,23,0.12);display:flex;flex-direction:column;min-height:80vh;}
+header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(0,0,0,0.06);}
+.logo{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:white;font-weight:700;}
+header h1{font-size:16px}
+.top-controls{margin-left:auto;display:flex;gap:8px;align-items:center}
+select, button{padding:8px;border-radius:8px;border:1px solid var(--border-btn);background:transparent;color:inherit;cursor:pointer;transition:background var(--transition-time),color var(--transition-time);}
+button.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:none;color:var(--button-text);font-weight:700}
+
+/* Barra de navegação das questões */
+.top-nav{display:flex;overflow-x:auto;padding:8px 4px;gap:4px;border-bottom:1px solid rgba(0,0,0,0.06);}
+.top-nav::-webkit-scrollbar{display:none}
+.qbtn-num{min-width:36px;padding:6px;border-radius:8px;border:1px solid var(--border-btn);background:transparent;cursor:pointer;font-size:13px;}
+.qbtn-num.answered{background:var(--accent);color:#012;font-weight:700;}
+.qbtn-num.current{box-shadow:0 0 0 3px rgba(6,182,212,0.08);}
+
+/* Quiz */
+.quiz-center{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:18px}
+.q-name{color:var(--muted);font-size:13px}
+.q-title{font-weight:700;font-size:20px;text-align:center}
+.progress-wrap{margin-top:12px;width:100%;}
+.progress{height:10px;background:rgba(0,0,0,0.06);border-radius:999px;overflow:hidden;}
+.progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0%;transition:width var(--transition-time) ease;}
+.choices-grid{display:flex;flex-direction:column;align-items:center;gap:12px;}
+.choice, #clearBtn{width:220px;max-width:90%;text-align:center;padding:12px;font-size:16px;border-radius:10px;border:1px solid var(--border-btn);cursor:pointer;transition:background var(--transition-time),color var(--transition-time);background:transparent;}
+.choice.selected{background:var(--accent);color:var(--button-text);font-weight:700}
+#clearBtn{font-weight:700;margin-top:8px;}
+#clearBtn:hover{background:var(--accent);color:var(--button-text);}
+
+/* cores para respostas após finalizar */
+.choice.correct-answer{background:green;color:white;font-weight:700;}
+.choice.wrong-answer{background:red;color:white;font-weight:700}
+
+/* Resumo estatísticas */
+.stats{display:flex;gap:12px;font-size:14px;color:var(--muted);margin-top:4px;}
+
+/* Footer buttons */
+footer.app-footer{display:flex;justify-content:center;padding:12px 16px;border-top:1px solid rgba(0,0,0,0.06);position:sticky;bottom:0;background:var(--card);}
+.nav-actions{display:flex;justify-content:center;gap:40px;flex-wrap:wrap;}
+.vertical-group{display:flex;flex-direction:column;align-items:center;gap:10mm;} /* 1cm de espaçamento vertical */
+.nav-actions button{padding:14px 22px;font-size:16px;min-width:120px;font-weight:700;border-radius:10px;border:1px solid var(--border-btn);cursor:pointer;transition:background var(--transition-time),color var(--transition-time);}
+#finalizeBtn{background:var(--accent);color:white;border:none;}
+#resetBtn{background:#888;color:white; display:none;}
+.results{margin-top:16px;width:100%;max-height:300px;overflow:auto;border-top:1px solid rgba(0,0,0,0.1);padding-top:12px;}
+.results .item{padding:6px 0;border-bottom:1px solid rgba(0,0,0,0.06);}
+.results .correct{color:green;font-weight:700;}
+.results .wrong{color:red;font-weight:700;}
+@media(max-width:560px){.choice, #clearBtn{width:90%}.nav-actions button{min-width:90px;font-size:14px;padding:12px 18px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">E</div>
+    <h1>Simulado ENEM 2025 - Prova Verde</h1>
+    <div class="top-controls">
+      <select id="themeSelect">
+        <option value="auto">Tema automático</option>
+        <option value="light">Claro</option>
+        <option value="dark">Escuro</option>
+      </select>
+    </div>
+  </header>
+
+  <div class="top-nav" id="topNav"></div>
+
+  <div class="quiz-center">
+    <div class="q-name" id="qLabel">Questão</div>
+    <div class="q-title" id="qTitle">Selecione a alternativa</div>
+
+    <div class="progress-wrap">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:14px">Questão <span id="currentNum">0</span> de <span id="totalNum">0</span></div>
+        <div style="font-size:13px;color:var(--muted)">Respondidas: <span id="answeredCount">0</span>/<span id="totalQuestions">0</span></div>
+      </div>
+      <div class="progress"><i id="progressBar"></i></div>
+      <div class="stats" id="statsDiv" style="display:none;">
+        <div>✅ Certas: <span id="correctCount">0</span></div>
+        <div>❌ Erradas: <span id="wrongCount">0</span></div>
+        <div>⚪ Não respondidas: <span id="blankCount">0</span></div>
+      </div>
+    </div>
+
+    <div class="choices-grid" id="quizChoices"></div>
+    <button id="clearBtn">Limpar resposta desta questão</button>
+    <div class="results" id="results"></div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="nav-actions">
+      <div class="vertical-group">
+        <button id="prevBtn">Anterior</button>
+        <button id="resetBtn">Reiniciar</button>
+      </div>
+      <div class="vertical-group">
+        <button id="nextBtn">Próxima</button>
+        <button id="finalizeBtn">Finalizar</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+// Número inicial dinâmico
+let startQuestionNumber = 1;
+
+// Gabarito (quantas questões quiser, não precisa ser fixo)
+const gabarito=[
+"D","D","A","D","E","E","D","C","C","E",
+"B","E","B","C","E","C","A","E","B","C",
+"A","E","C","C","E","D","B","A","B","A",
+"B","D","E","B","B","C","B","A","A","B",
+"D","D","C","C","A","C","E","E","D","C",
+"A","D","B","D","E","C","A","D","E","D",
+"E","C","A","B","A","C","B","A","D","A",
+"B","B","C","B","C","E","A","E","E","D",
+"D","B","C","D","D","E","C","B","B","A"];
+let respostas_usuario=new Array(gabarito.length).fill(null);
+let currentQ=0;
+let finalized=false;
+
+// Tema automático
+const themeSelect = document.getElementById('themeSelect');
+function setTheme(theme){
+  if(theme==='auto'){
+    if(window.matchMedia('(prefers-color-scheme: dark)').matches){
+      document.body.setAttribute('data-theme','dark');
+    }else{
+      document.body.setAttribute('data-theme','light');
+    }
+  }else{
+    document.body.setAttribute('data-theme',theme);
+  }
+}
+themeSelect.addEventListener('change',e=>setTheme(e.target.value));
+setTheme('auto');
+
+// LocalStorage
+function saveProgress(){
+  const data = { respostas_usuario, currentQ, finalized };
+  localStorage.setItem('simuladoENEM2025', JSON.stringify(data));
+}
+function loadProgress(){
+  const saved = localStorage.getItem('simuladoENEM2025');
+  if(saved){
+    const data = JSON.parse(saved);
+    respostas_usuario = data.respostas_usuario || new Array(gabarito.length).fill(null);
+    currentQ = data.currentQ !== undefined ? data.currentQ : 0;
+    finalized = data.finalized || false;
+  }
+}
+loadProgress();
+
+// Barra topo
+const topNav = document.getElementById('topNav');
+function renderTopNav(){
+  topNav.innerHTML='';
+  for(let i=0;i<gabarito.length;i++){
+    const btn = document.createElement('button');
+    btn.textContent = startQuestionNumber + i;
+    btn.className='qbtn-num';
+    if(respostas_usuario[i]!==null) btn.classList.add('answered');
+    if(i===currentQ) btn.classList.add('current');
+    btn.addEventListener('click',()=>{currentQ=i;renderQuestion(); saveProgress();});
+    topNav.appendChild(btn);
+  }
+}
+
+// Alternativas
+const quizChoices = document.getElementById('quizChoices');
+function renderChoices(){
+  quizChoices.innerHTML='';
+  ['A','B','C','D','E'].forEach(ch=>{
+    const btn = document.createElement('button');
+    btn.textContent=ch;
+    btn.classList.add('choice');
+
+    if(!finalized){
+      if(respostas_usuario[currentQ]===ch) btn.classList.add('selected');
+    } else {
+      const correc=gabarito[currentQ];
+      const user=respostas_usuario[currentQ];
+      if(ch===correc) btn.classList.add('correct-answer');
+      if(user && ch===user && user!==correc) btn.classList.add('wrong-answer');
+    }
+
+    btn.addEventListener('click',()=>{
+      if(!finalized){
+        respostas_usuario[currentQ] = ch;
+        updateSelected();
+        renderTopNav();
+        saveProgress();
+      }
+    });
+    quizChoices.appendChild(btn);
+  });
+}
+
+function updateSelected(){
+  document.querySelectorAll('.choice').forEach(btn=>{
+    btn.classList.remove('selected');
+    if(btn.textContent===respostas_usuario[currentQ]) btn.classList.add('selected');
+  });
+}
+
+function updateStats(){
+  if(!finalized) return;
+  let correct=0, wrong=0, blank=0;
+  for(let i=0;i<gabarito.length;i++){
+    if(respostas_usuario[i]===null) blank++;
+    else if(respostas_usuario[i]===gabarito[i]) correct++;
+    else wrong++;
+  }
+  document.getElementById('correctCount').textContent=correct;
+  document.getElementById('wrongCount').textContent=wrong;
+  document.getElementById('blankCount').textContent=blank;
+  document.getElementById('totalQuestions').textContent=gabarito.length;
+}
+
+function renderQuestion(){
+  document.getElementById('qLabel').textContent=`Questão ${startQuestionNumber + currentQ} de ${startQuestionNumber + gabarito.length - 1}`;
+  document.getElementById('qTitle').textContent=`Questão ${startQuestionNumber + currentQ}: escolha uma alternativa`;
+  document.getElementById('currentNum').textContent=startQuestionNumber + currentQ;
+  document.getElementById('answeredCount').textContent=respostas_usuario.filter(r=>r!==null).length;
+  document.getElementById('totalNum').textContent=startQuestionNumber + gabarito.length - 1;
+  renderChoices();
+  updateProgress();
+  renderTopNav();
+  updateStats();
+
+  document.getElementById('finalizeBtn').style.display = (currentQ === gabarito.length-1 && !finalized) ? 'inline-block' : 'none';
+  document.getElementById('resetBtn').style.display = finalized ? 'inline-block' : 'none';
+}
+
+function updateProgress(){
+  const perc = ((respostas_usuario.filter(r=>r!==null).length)/gabarito.length)*100;
+  document.getElementById('progressBar').style.width=perc+'%';
+}
+
+// Navegação
+document.getElementById('prevBtn').addEventListener('click',()=>{
+  if(currentQ>0) currentQ--; renderQuestion(); saveProgress();
+});
+document.getElementById('nextBtn').addEventListener('click',()=>{
+  if(currentQ<gabarito.length-1) currentQ++; renderQuestion(); saveProgress();
+});
+
+// Finalizar
+document.getElementById('finalizeBtn').addEventListener('click',()=>{
+  if(!confirm("Tem certeza que deseja finalizar o simulado?")) return;
+  finalized=true;
+  renderQuestion();
+  saveProgress();
+
+  document.getElementById('statsDiv').style.display='flex';
+
+  const resultsDiv = document.getElementById('results');
+  resultsDiv.innerHTML='';
+  for(let i=0;i<gabarito.length;i++){
+    const user=respostas_usuario[i];
+    const correc=gabarito[i];
+    if(user!==null && user!==correc){
+      const item = document.createElement('div');
+      item.className='item';
+      item.innerHTML=`Questão ${startQuestionNumber + i}: ${user} <span class="wrong">(Correta: ${correc})</span>`;
+      resultsDiv.appendChild(item);
+    }
+  }
+});
+
+// Reiniciar
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  if(confirm("Tem certeza que deseja reiniciar o simulado? Todos os dados serão apagados.")){
+    respostas_usuario = new Array(gabarito.length).fill(null);
+    currentQ = 0;
+    finalized=false;
+    document.getElementById('results').innerHTML='';
+    document.getElementById('statsDiv').style.display='none';
+    localStorage.removeItem('simuladoENEM2025');
+    renderQuestion();
+    updateProgress();
+  }
+});
+
+// Limpar resposta individual
+document.getElementById('clearBtn').addEventListener('click',()=>{
+  if(respostas_usuario[currentQ]===null){
+    alert("Não há resposta para limpar nesta questão.");
+    return;
+  }
+  if(confirm("Tem certeza que deseja limpar a resposta desta questão?")){
+    respostas_usuario[currentQ]=null;
+    renderQuestion();
+    updateProgress();
+    saveProgress();
+  }
+});
+
+renderQuestion();
+</script>
+</body>
+</html>
